@@ -38,8 +38,10 @@ router.get('/summary', async (req, res) => {
       completed_walks: r.completed_walks
     }));
 
+    // Send the JSON response
     res.json(mapped);
   } catch (err) {
+    // Catch error
     console.error('Error fetching walker summaries:', err);
     res.status(500).json({ error: 'Failed to fetch walker summaries' });
   }

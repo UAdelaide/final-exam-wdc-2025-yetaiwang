@@ -9,6 +9,7 @@ var app = express();
 // API Routes
 const dogsRouter = require('./routes/dogs');
 const walkersRouter = require('./routes/walkers');
+const walkRequestsRouter = require('./routes/walkRequests');
 
 app.use(logger('dev'));
 app.use(express.json());
@@ -82,6 +83,7 @@ app.use((req, res, next) => {
 // Set routers
 app.use('/api/walkers', walkersRouter);
 app.use('/api/dogs', dogsRouter);
+app.use('/api/walkrequests', walkRequestsRouter);
 
 app.use(express.static(path.join(__dirname, 'public')));
 

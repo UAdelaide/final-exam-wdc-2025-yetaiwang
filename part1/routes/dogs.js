@@ -18,8 +18,11 @@ router.get('/', async (req, res) => {
       FROM Dogs d
       JOIN Users u ON d.owner_id = u.user_id
     `);
+
+    // Send the JSON response
     res.json(results);
   } catch (err) {
+    // Catch error
     console.error('Error fetching dogs:', err);
     res.status(500).json({ error: 'Failed to fetch dogs' });
   }
