@@ -6,6 +6,9 @@ var mysql = require('mysql2/promise');
 
 var app = express();
 
+// API Routes
+const dogsRouter = require('./routes/dogs');
+
 app.use(logger('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
@@ -19,19 +22,19 @@ let db;
     const connection = await mysql.createConnection({
       host: 'localhost',
       user: 'root',
-      password: '123456' // Set your MySQL root password
+      password: '' // Set your MySQL root password
     });
 
     // Create the database if it doesn't exist
-    await connection.query('CREATE DATABASE IF NOT EXISTS testdb');
+    await connection.query('CREATE DATABASE IF NOT EXISTS DogWalkService');
     await connection.end();
 
     // Now connect to the created database
     db = await mysql.createConnection({
       host: 'localhost',
       user: 'root',
-      password: '123456',
-      database: 'testdb'
+      password: '',
+      database: 'DogWalkService'
     });
 
     // Create a table if it doesn't exist
@@ -67,6 +70,16 @@ app.get('/', async (req, res) => {
     res.status(500).json({ error: 'Failed to fetch books' });
   }
 });
+
+// Middleware to attach db to request
+app.use((req, res, next) => {
+  req.db = db;
+  next();
+});
+
+
+// Set routers
+app.use('/api/dogs', dogsRouter);
 
 app.use(express.static(path.join(__dirname, 'public')));
 
