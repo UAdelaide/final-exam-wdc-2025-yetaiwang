@@ -1,12 +1,93 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <title>Express</title>
-    <link rel="stylesheet" href="/stylesheets/style.css">
+  <meta charset="UTF-8">
+  <title>Dog of the Day</title>
+  <!-- Vue 3 CDN -->
+  <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background: yellow;
+      color: #eeeeee;
+      font-family: sans-serif;
+    }
+    
+    /* center text and images */
+    #app {
+      text-align: center;
+    }
+    
+    /* All text same size: no hierarchy */
+    h1, p, button {
+      font-size: 16px;
+    }
+    
+    /* Blinking image distracts eyes */
+    @keyframes blink {
+      0%, 50%, 100% { opacity: 1; }
+      25%, 75%     { opacity: 0; }
+    }
+    img {
+      animation: blink 2s infinite;
+      max-width: 300px;
+    }
+    
+    /* Tiny, ambiguous buttons */
+    button {
+      padding: 2px 4px;
+      margin: 4px;
+      border: none;
+      background: lightblue;
+      cursor: pointer;
+    }
+    
+    /* No focus outline: breaks keyboard accessibility */
+    :focus {
+      outline: none;
+    }
+  </style>
 </head>
-
 <body>
-    <h1>Express</h1>
-    <p>Welcome to Express</p>
+  <div id="app">
+    <h1>Dog of the Day</h1>
+
+    <!-- Missing alt attribute: screen readers ignore this -->
+    <img :src="dogImage">
+
+    <!-- Hard‑coded details -->
+    <p>Name: Buddy</p>
+    <p>Size: Huge</p>
+    <p>Breed: Mystery Mix</p>
+    <p>Owner: alice123</p>
+
+    <!-- Vague button labels -->
+    <button @click="loadDog()">Load New Dog</button>
+    <button @click="alert('Woof!')">Say Hi</button>
+  </div>
+
+  <script>
+    const { createApp } = Vue;
+    createApp({
+      data() {
+        return { dogImage: '' };
+      },
+      methods: {
+        loadDog() {
+          fetch('https://dog.ceo/api/breeds/image/random')
+            .then(res => res.json())
+            .then(data => { this.dogImage = data.message; });
+        }
+      },
+      mounted() {
+        this.loadDog();
+      }
+    }).mount('#app');
+  </script>
 </body>
 </html>
