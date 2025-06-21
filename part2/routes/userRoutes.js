@@ -51,11 +51,25 @@ router.post('/login', async (req, res) => {
 
     // store user in session
     req.session.user = rows[0];
-    
+
     res.json({ message: 'Login successful', user: rows[0] });
   } catch (error) {
     res.status(500).json({ error: 'Login failed' });
   }
+});
+
+// POST logout - destroys session
+router.post('/logout', (req, res) => {
+  // Destroy the session
+  req.session.destroy(err => {
+    if (err) {
+      console.error('Logout error:', err);
+      return res.status(500).json({ error: 'Logout failed' });
+    }
+    // Clear the session cookie on client
+    res.clearCookie('connect.sid');
+    res.json({ message: 'Logged out successfully' });
+  });
 });
 
 module.exports = router;
