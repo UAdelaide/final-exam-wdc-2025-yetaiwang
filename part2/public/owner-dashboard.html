@@ -23,9 +23,25 @@
       </div>
       <div class="card-body">
         <form @submit.prevent="submitWalkRequest">
+          <!-- Owner select dog -->
           <div class="mb-3">
-            <label class="form-label">Dog ID</label>
-            <input v-model="form.dog_id" type="number" class="form-control" required>
+            <label for="dogSelect" class="form-label">Select Your Dog</label>
+            <!-- Dropdown showing the owner’s dogs -->
+            <select 
+              id="dogSelect"
+              v-model="form.dog_id"
+              class="form-select"
+              required
+            >
+              <option disabled value="">-- Choose a dog --</option>
+              <option 
+                v-for="dog in dogs" 
+                :key="dog.dog_id" 
+                :value="dog.dog_id"
+              >
+                {{ dog.dog_name }}
+              </option>
+            </select>
           </div>
           <div class="mb-3">
             <label class="form-label">Requested Date & Time</label>
@@ -85,12 +101,47 @@
         const message = ref('');
         const error = ref('');
 
+        // owners' dogs 
+        const dogs = ref([]);
+        // logged‑in user_id and username
+        let userId = ref(0);
+        let username = ref('');
+        
+        // Fetch current user from session
+        async function loadCurrentUser() {
+          const res = await fetch('/api/users/me');
+          if (res.status === 401) {
+            // User is not logged in, jump to the home page
+            window.location.href = '/index.html';
+            return;
+          }
+
+          if (res.status !== 200 && res.status !== 304) {
+            console.error('Unexpected error:', await res.text());
+            return;
+          }
+
+          const user = await res.json();
+          userId = user.user_id;
+          username = user.username;
+        }
+
+        // Load this owner’s dogs, then store in `dogs`
+        async function loadDogs() {
+          const res = await fetch('/api/dogs');
+          const allDogs = await res.json();
+          // filter to only this owner’s dogs
+          dogs.value = allDogs.filter(d => d.owner_id === userId);
+        }
+
+        // Load only this owner’s walk requests
         async function loadWalks() {
           try {
-            const res = await fetch('/api/walks');
+            const res = await fetch('/api/walks/owner');
+            // get all walkRequests
             walks.value = await res.json();
           } catch (err) {
-            error.value = 'Failed to load walk requests';
+            error.value = err.message;
           }
         }
 
@@ -136,12 +187,15 @@
         }
 
         onMounted(() => {
+          loadCurrentUser();
+          loadDogs();
           loadWalks();
         });
 
         return {
           form,
           walks,
+          dogs,
           message,
           error,
           submitWalkRequest,

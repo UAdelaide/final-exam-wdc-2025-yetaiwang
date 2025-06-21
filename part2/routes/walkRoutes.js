@@ -19,6 +19,52 @@ router.get('/', async (req, res) => {
   }
 });
 
+/**
+ * GET /api/walks/owner
+ * Fetches open walk requests for the currently logged‑in owner.
+ * Requires the user to have logged in and have `req.session.user.role === 'owner'`.
+ */
+router.get('/owner', async (req, res) => {
+  // Ensure the user is logged in
+  if (!req.session.user) {
+    return res.status(401).json({ error: 'Not authenticated' });
+  }
+
+  // Ensure the logged‑in user is an owner
+  if (req.session.user.role !== 'owner') {
+    return res.status(403).json({ error: 'Forbidden: owners only' });
+  }
+
+  const ownerId = req.session.user.user_id;
+
+  try {
+    const [rows] = await db.query(`
+      SELECT
+        wr.request_id,
+        wr.dog_id,
+        d.name        AS dog_name,
+        d.size        AS size,
+        wr.requested_time,
+        wr.duration_minutes,
+        wr.location,
+        wr.status,
+        wr.created_at
+      FROM WalkRequests wr
+      JOIN Dogs d ON wr.dog_id = d.dog_id
+      WHERE d.owner_id = ?
+      ORDER BY wr.requested_time DESC
+    `, [ownerId]);
+
+    // Return only this owner's open walk requests
+    res.json(rows);
+
+  } catch (error) {
+    console.error('SQL Error fetching owner walk requests:', error);
+    res.status(500).json({ error: 'Failed to fetch walk requests for owner' });
+  }
+});
+
+
 // POST a new walk request (from owner)
 router.post('/', async (req, res) => {
   const { dog_id, requested_time, duration_minutes, location } = req.body;
